@@ -11,7 +11,7 @@ class Mixer:
         channels=2, 
         buffer=512, 
         devicename=None, 
-        allowedchanges=AUDIO_ALLOW_FREQUENCY_CHANGE | AUDIO_ALLOW_CHANNELS_CHANGE
+        allowedchanges=pygame.AUDIO_ALLOW_FREQUENCY_CHANGE | pygame.AUDIO_ALLOW_CHANNELS_CHANGE
     ):
 
         self.frequency = frequency
@@ -57,7 +57,7 @@ class Mixer:
     Returns True if the mixer is busy mixing any channels. 
     If the mixer is idle then this return False.
     """
-    def get_busy(self) -> Bool:
+    def get_busy(self) -> bool:
         self.mixer.get_busy()
 
     """
@@ -75,7 +75,7 @@ class Mixer:
         maxtime: can be used to stop playback after a given number of milliseconds.
         fade_ms: make the sound start playing at 0 volume and fade up to full volume over the time given. 
     """
-    def sound_play(self, loops=0, maxtime=0, fade_ms=0) -> Channel:
+    def sound_play(self, loops=0, maxtime=0, fade_ms=0) -> pygame.mixer.Channel:
         return self.sound.play(loops=loops, maxtime=maxtime, fade_ms=fade_ms)
 
     """
