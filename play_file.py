@@ -7,14 +7,6 @@ import time
 
 import RPi.GPIO as GPIO
 
-def decrease_volume(gpio_id, val):
-	print("gpio %s %s", gpio_id, val)
-
-def increase_volume(gpio_id, val):
-	print("gpio %s %s", gpio_id, val)
-
-def pause(gpio_id, val):
-	print("gpio %s %s", gpio_id, val)
 
 def play_music(music_file):
     '''
