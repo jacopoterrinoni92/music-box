@@ -150,12 +150,16 @@ class Mixer:
         pygame.mixer.music.unpause()
 
     """
+    This returns True if the channel is in pause or False otherwise.
+    """
+    def music_get_pause(self) -> None:
+        pygame.mixer.music.get_busy()
+
+    """
     Set the volume of the music playback.
     """
     def music_set_volume(self, value: int) -> None:
-        current_volume = pygame.mixer.music.get_volume()
-        print(f"Increment: {value/100}, Current Vol: {current_volume}")
-        pygame.mixer.music.set_volume(current_volume + value/100)
+        pygame.mixer.music.set_volume(pygame.mixer.music.get_volume() + value/100)
 
     """
     Returns the current volume for the mixer. The value will be between 0.0 and 1.0.

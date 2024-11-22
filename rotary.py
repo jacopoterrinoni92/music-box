@@ -57,7 +57,7 @@ class RotaryEncoder:
 
     def button_pressed(self, channel):
         if GPIO.input(SW_PIN) == GPIO.LOW:
-            if Mixer.get_pause():
+            if self.mixer.pause:
                 self.mixer.music_unpause()
             else:
                 self.mixer.music_pause()
@@ -79,6 +79,7 @@ class RotaryEncoder:
             elif newState == "00": # Turned left 1
                 if self.direction == DIRECTION_CCW:
                     self.value = self.value - 1
+                    self.mixer.music_set_volume(value=-5)
                     if self.callback is not None:
                         self.callback(self.value, self.direction)
         elif self.state == "10": # R3 or L1
@@ -87,6 +88,7 @@ class RotaryEncoder:
             elif newState == "00": # Turned right 1
                 if self.direction == DIRECTION_CW:
                     self.value = self.value + 1
+                    self.mixer.music_set_volume(value=5)
                     if self.callback is not None:
                         self.callback(self.value, self.direction)
         else: # self.state == "11"
@@ -97,16 +99,18 @@ class RotaryEncoder:
             elif newState == "00": # Skipped an intermediate 01 or 10 state, but if we know direction then a turn is complete
                 if self.direction == DIRECTION_CCW:
                     self.value = self.value - 1
+                    self.mixer.music_set_volume(value=-5)
                     if self.callback is not None:
                         self.callback(self.value, self.direction)
                 elif self.direction == DIRECTION_CW:
                     self.value = self.value + 1
+                    self.mixer.music_set_volume(value=5)
                     if self.callback is not None:
                         self.callback(self.value, self.direction)
         
         self.state = newState
-
-        self.mixer.music_set_volume(value=self.value)
+        
+        
 
     def clean_channels(self):
         GPIO.cleanup()

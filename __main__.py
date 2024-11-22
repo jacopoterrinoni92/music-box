@@ -31,7 +31,7 @@ if __name__ == "__main__":
     mixer.music_play()
     
     try:
-        while mixer.music_get_busy():
+        while True:
             pass
     except KeyboardInterrupt:
         pass
