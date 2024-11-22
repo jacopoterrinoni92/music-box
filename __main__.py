@@ -24,12 +24,16 @@ if __name__ == "__main__":
 
     song_file = args.file
 
-    rotary_encoder = RotaryEncoder()
     mixer = Mixer()
+    rotary_encoder = RotaryEncoder(mixer=mixer)
 
     mixer.music_load(song_file)
     mixer.music_play()
-
     
-
-    
+    try:
+        while mixer.music_get_busy():
+            pass
+    except KeyboardInterrupt:
+        pass
+    finally:
+        rotary_encoder.clean_channels()

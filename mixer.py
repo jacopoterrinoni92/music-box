@@ -153,8 +153,9 @@ class Mixer:
     Set the volume of the music playback.
     """
     def music_set_volume(self, value: int) -> None:
-        if value in range [0, 100]:
-            pygame.mixer.music.set_volume(volume=(value/100))
+        current_volume = pygame.mixer.music.get_volume()
+        print(f"Increment: {value/100}, Current Vol: {current_volume}")
+        pygame.mixer.music.set_volume(current_volume + value/100)
 
     """
     Returns the current volume for the mixer. The value will be between 0.0 and 1.0.

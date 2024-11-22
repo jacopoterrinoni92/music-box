@@ -28,8 +28,10 @@ DIRECTION_CCW = 1
 
 class RotaryEncoder:
 
-    def __init__(self):
+    def __init__(self, mixer):
         self.init_gpio()
+
+        self.mixer = mixer
 
         self.value = 0
         self.direction = DIRECTION_CW
@@ -56,9 +58,9 @@ class RotaryEncoder:
     def button_pressed(self, channel):
         if GPIO.input(SW_PIN) == GPIO.LOW:
             if Mixer.get_pause():
-                Mixer.music_unpause()
+                self.mixer.music_unpause()
             else:
-                Mixer.music_pause()
+                self.mixer.music_pause()
         time.sleep(0.1)
 
     def rotary_callback(self, channel):
@@ -104,7 +106,7 @@ class RotaryEncoder:
         
         self.state = newState
 
-        Mixer.music_set_volume(volume=self.value)
+        self.mixer.music_set_volume(value=self.value)
 
     def clean_channels(self):
         GPIO.cleanup()
