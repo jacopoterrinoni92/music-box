@@ -1,24 +1,27 @@
-import st7735
+import board
+import digitalio
 
-CS = 24
-DC = 18
-RESET = 22
-MOSI = 19
-SCK = 23
-LED = 15
+from adafruit_rgb_display import st7735
+
+CS = digitalio.DigitalInOut(board.D8)
+DC = digitalio.DigitalInOut(board.D18)
+RESET = digitalio.DigitalInOut(board.D22)
+MOSI = digitalio.DigitalInOut(board.D19)
+SCK = digitalio.DigitalInOut(board.D23)
+LED = digitalio.DigitalInOut(board.D15)
 
 class Display:
     
     def __init__(
         self, 
         port:int=0, 
-        cs=0, 
+        cs=CS, 
         dc:int=DC, 
         backlight:int=LED, 
         rst=RESET,
-        width=0,
-        height=0,
-        rotation:int=90,
+        width=160,
+        height=128,
+        rotation:int=0,
         offset_left=None,
         offset_top=None,
         invert=True,
@@ -43,61 +46,25 @@ class Display:
         :param spi_speed_hz: SPI speed (in Hz)
 
         """
+        self.disp = st7735.ST7735(board.SPI(), cs=cs, dc=dc, rst=rst, width=width, height=height, rotation=rotation, baudrate=spi_speed_hz)
+        self.backlight = LED
+        self.backlight.switch_to_output()
         
-        self.display = st7735.ST7735(port=port, cs=cs, dc=dc, backlight=backlight, rst=rst, width=width, height=height, rotation=rotation, spi_speed_hz=spi_speed_hz)
+    def turn_on_backlight(self):
+        self.backlight.value = True
         
-        self.width = width
-        self.height = height
-        
-    def initialize(self):
-        self.display.begin()
+    def turn_off_backlight(self):
+        self.backlight.value = False
         
     def reset(self):
-        self.display.reset()
-        
-    def display_off(self):
-        self.display.display_off()
-        
-    def display_on(self):
-        self.display.display_on()
-        
-    def sleep(self):
-        self.display.sleep()
-        
-    def wake(self):
-        self.display.wake()
-        
+        self.disp.reset()
+                
     @property
     def width(self):
-        return self.display.width()
+        return self.disp.width()
 
     @property
     def height(self):
-        return self.display.height()
-        
-    def send(self, data, is_data=True, chunk_size=4096):
-        """Write a byte or array of bytes to the display. Is_data parameter
-        controls if byte should be interpreted as display data (True) or command
-        data (False).  Chunk_size is an optional size of bytes to write in a
-        single SPI transaction, with a default of 4096.
-        """
-        self.display.send(data, is_data, chunk_size)
-        
-    def set_window(self, x0=0, y0=0, x1=None, y1=None):
-        """Set the pixel address window for proceeding drawing commands. x0 and
-        x1 should define the minimum and maximum x pixel bounds.  y0 and y1
-        should define the minimum and maximum y pixel bound.  If no parameters
-        are specified the default will be to update the entire display from 0,0
-        to width-1,height-1.
-        """
-        self.display.set_window(x0, y0, x1, y1)
-
-    def display(self, image):
-        """Write the provided image to the hardware.
-
-        :param image: Should be RGB format and the same dimensions as the display hardware.
-
-        """
-        self.display.display()
+        return self.disp.height()
         
     
