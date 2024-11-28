@@ -3,22 +3,16 @@ import digitalio
 
 from adafruit_rgb_display import st7735
 
-CS = digitalio.DigitalInOut(board.D8)
-DC = digitalio.DigitalInOut(board.D18)
-RESET = digitalio.DigitalInOut(board.D22)
-MOSI = digitalio.DigitalInOut(board.D19)
-SCK = digitalio.DigitalInOut(board.D23)
-LED = digitalio.DigitalInOut(board.D15)
 
 class Display:
     
     def __init__(
         self, 
         port:int=0, 
-        cs=CS, 
-        dc:int=DC, 
-        backlight:int=LED, 
-        rst=RESET,
+        cs=0, 
+        dc:int=0, 
+        backlight:int=0, 
+        rst=0,
         width=160,
         height=128,
         rotation:int=0,
@@ -46,18 +40,33 @@ class Display:
         :param spi_speed_hz: SPI speed (in Hz)
 
         """
-        self.disp = st7735.ST7735(board.SPI(), cs=cs, dc=dc, rst=rst, width=width, height=height, rotation=rotation, baudrate=spi_speed_hz)
-        self.backlight = LED
-        self.backlight.switch_to_output()
+        self.cs = digitalio.DigitalInOut(board.D24)
+        self.dc = digitalio.DigitalInOut(board.D12)
+        self.rst = digitalio.DigitalInOut(board.D15)
+        
+        self.mosi = digitalio.DigitalInOut(board.D19)
+        self.sck = digitalio.DigitalInOut(board.D23)
+        self.spi = board.SPI()
+        self.disp = st7735.ST7735(self.spi, cs=self.cs, dc=self.dc, rst=self.rst, width=width, height=height, rotation=rotation, baudrate=spi_speed_hz)
+        
+        self.led = digitalio.DigitalInOut(board.D15)
+        self.led.switch_to_output()
         
     def turn_on_backlight(self):
-        self.backlight.value = True
+        self.led.value = True
         
     def turn_off_backlight(self):
-        self.backlight.value = False
+        self.led.value = False
         
     def reset(self):
         self.disp.reset()
+        
+    def clean_resources(self):
+        self.spi.deinit()
+        self.cs.deinit()
+        self.dc.deinit()
+        self.rst.deinit()
+        self.led.deinit()
                 
     @property
     def width(self):
@@ -66,5 +75,8 @@ class Display:
     @property
     def height(self):
         return self.disp.height()
+    
+    def get_display(self):
+        return self.disp
         
     
