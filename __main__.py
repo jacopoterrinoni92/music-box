@@ -61,8 +61,8 @@ if __name__ == "__main__":
 
     song_file = args.file
 
-    disp = Display()
-    disp.turn_on_backlight()
+    #disp = Display()
+    #disp.turn_on_backlight()
 
     mixer = Mixer()
     rotary_encoder = RotaryEncoder(mixer=mixer)
@@ -76,4 +76,4 @@ if __name__ == "__main__":
         pass
     finally:
         rotary_encoder.clean_channels()
-        disp.clean_resources()
+        #disp.clean_resources()
