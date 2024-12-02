@@ -62,8 +62,7 @@ if __name__ == "__main__":
     song_file = args.file
 
     #disp = Display()
-    #disp.turn_on_backlight()
-
+    
     mixer = Mixer()
     rotary_encoder = RotaryEncoder(mixer=mixer)
     mixer.music_load(song_file)

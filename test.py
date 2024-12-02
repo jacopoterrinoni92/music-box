@@ -1,18 +1,15 @@
-import audiocore
-import board
-import audiobusio
+import spidev
 
-wave_file = open("/home/pi/music/Pietro.wav", "rb")
-wave = audiocore.WaveFile(wave_file)
+spi = spidev.SpiDev()
 
-# For Feather M0 Express, ItsyBitsy M0 Express, Metro M0 Express
-audio = audiobusio.I2SOut(board.D12, board.D35, board.D40)
-# For Feather M4 Express
-# audio = audiobusio.I2SOut(board.D1, board.D10, board.D11)
-# For Metro M4 Express
-# audio = audiobusio.I2SOut(board.D3, board.D9, board.D8)
+spi.open(0,0)
 
-while True:
-    audio.play(wave)
-    while audio.playing:
-        pass
+# Configure the SPI bus
+spi.max_speed_hz = 1000000  # Set the maximum SPI clock speed
+spi.mode = 0  # Set the SPI mode (0 or 1)
+
+# Send a byte and receive a byte
+response = spi.xfer2([0x01])
+
+# Close the SPI device
+spi.close()

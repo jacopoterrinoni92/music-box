@@ -1,4 +1,5 @@
 import board
+import busio
 import digitalio
 
 from adafruit_rgb_display import st7735
@@ -20,7 +21,7 @@ class Display:
         offset_top=None,
         invert=True,
         bgr=True, 
-        spi_speed_hz=4000000):
+        spi_speed_hz=2400000):
         """Create an instance of the display using SPI communication.
 
         Must provide the GPIO pin label for the D/C pin and the SPI driver.
@@ -40,13 +41,13 @@ class Display:
         :param spi_speed_hz: SPI speed (in Hz)
 
         """
-        self.cs = digitalio.DigitalInOut(board.D24)
-        self.dc = digitalio.DigitalInOut(board.D12)
-        self.rst = digitalio.DigitalInOut(board.D15)
+        self.cs = digitalio.DigitalInOut(board.D8) #D24
+        self.dc = digitalio.DigitalInOut(board.D18) #12
+        self.rst = digitalio.DigitalInOut(board.D22) #15
         
-        self.mosi = digitalio.DigitalInOut(board.D19)
-        self.sck = digitalio.DigitalInOut(board.D23)
-        self.spi = board.SPI()
+        self.mosi = digitalio.DigitalInOut(board.D10) #19
+        self.sck = digitalio.DigitalInOut(board.D11) #23
+        self.spi = busio.SPI(board.SCK, MOSI=board.MOSI, MISO=board.MISO)
         self.disp = st7735.ST7735(self.spi, cs=self.cs, dc=self.dc, rst=self.rst, width=width, height=height, rotation=rotation, baudrate=spi_speed_hz)
         
         self.led = digitalio.DigitalInOut(board.D15)
