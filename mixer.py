@@ -12,7 +12,7 @@ class Mixer:
         buffer: int = 512,
         devicename: str = None,
         allowedchanges=pygame.AUDIO_ALLOW_FREQUENCY_CHANGE | pygame.AUDIO_ALLOW_CHANNELS_CHANGE,
-        volume: int = 0.5
+        volume: int = 1
     ):
 
         self.frequency = frequency

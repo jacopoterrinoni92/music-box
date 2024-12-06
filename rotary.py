@@ -50,10 +50,10 @@ class RotaryEncoder:
         GPIO.setup(DT_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
         GPIO.setup(SW_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
-        GPIO.add_event_detect(CLK_PIN, GPIO.BOTH, callback=self.rotary_callback)  
-        GPIO.add_event_detect(DT_PIN, GPIO.BOTH, callback=self.rotary_callback)
+        #GPIO.add_event_detect(CLK_PIN, GPIO.BOTH, callback=self.rotary_callback)  
+        #GPIO.add_event_detect(DT_PIN, GPIO.BOTH, callback=self.rotary_callback)
 
-        GPIO.add_event_detect(SW_PIN, GPIO.FALLING, callback=self.button_pressed)
+        #GPIO.add_event_detect(SW_PIN, GPIO.FALLING, callback=self.button_pressed)
 
     def button_pressed(self, channel):
         if GPIO.input(SW_PIN) == GPIO.LOW:
@@ -109,8 +109,6 @@ class RotaryEncoder:
                         self.callback(self.value, self.direction)
         
         self.state = newState
-        
-        
 
     def clean_channels(self):
         GPIO.cleanup()

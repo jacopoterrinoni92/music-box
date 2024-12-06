@@ -61,10 +61,11 @@ if __name__ == "__main__":
 
     song_file = args.file
 
-    #disp = Display()
-    
+    disp = Display()
+    disp.display_image(draw_image())
+
     mixer = Mixer()
-    rotary_encoder = RotaryEncoder(mixer=mixer)
+    #rotary_encoder = RotaryEncoder(mixer=mixer)
     mixer.music_load(song_file)
     mixer.music_play()
 
@@ -74,5 +75,6 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         pass
     finally:
-        rotary_encoder.clean_channels()
-        #disp.clean_resources()
+        #rotary_encoder.clean_channels()
+        disp.clean_resources()
+        #disp.reset()
