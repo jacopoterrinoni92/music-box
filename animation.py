@@ -9,14 +9,13 @@ class Display:
 
     def __init__(
         self,
-        port:int=0, 
         cs=board.CE0,
-        dc=board.D24, 
+        dc=board.D25, 
         backlight=board.D22, 
-        rst=board.D25,
+        rst=board.D24,
         width=160,
         height=128,
-        rotation:int=0,
+        rotation:int=90,
         offset_left=None,
         offset_top=None,
         invert=True,
@@ -47,11 +46,15 @@ class Display:
 
         self.mosi = board.MOSI
         self.sck = board.SCK
-        self.spi = busio.SPI(self.sck, self.mosi)
+        self.spi = board.SPI()
         self.disp = st7735.ST7735(self.spi, cs=self.cs, dc=self.dc, rst=self.rst, width=width, height=height, rotation=rotation, baudrate=spi_speed_hz)
 
-        self.led = digitalio.DigitalInOut(board.D22)
+        self.led = digitalio.DigitalInOut(backlight)
         self.led.switch_to_output()
+        
+        self.w = width
+        self.h = height
+        self.rot = rotation
 
     def turn_on_backlight(self):
         self.led.value = True
@@ -71,11 +74,14 @@ class Display:
 
     @property
     def width(self):
-        return self.disp.width()
+        return self.w
 
     @property
     def height(self):
-        return self.disp.height()
+        return self.h
+    
+    def rotation(self):
+        return self.rot
 
     def get_display(self):
         return self.disp
