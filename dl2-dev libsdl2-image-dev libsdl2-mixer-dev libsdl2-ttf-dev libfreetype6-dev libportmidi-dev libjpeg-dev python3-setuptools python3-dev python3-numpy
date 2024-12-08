@@ -1,0 +1,68 @@
+cmac 12288 3 - Live 0x0000000000000000
+algif_hash 12288 1 - Live 0x0000000000000000
+aes_arm64 12288 3 - Live 0x0000000000000000
+aes_generic 32768 1 aes_arm64, Live 0x0000000000000000
+algif_skcipher 12288 1 - Live 0x0000000000000000
+af_alg 24576 6 algif_hash,algif_skcipher, Live 0x0000000000000000
+bnep 24576 2 - Live 0x0000000000000000
+brcmfmac_wcc 12288 0 - Live 0x0000000000000000
+brcmfmac 348160 1 brcmfmac_wcc, Live 0x0000000000000000
+binfmt_misc 16384 1 - Live 0x0000000000000000
+brcmutil 24576 1 brcmfmac, Live 0x0000000000000000
+vc4 376832 2 - Live 0x0000000000000000
+cfg80211 983040 1 brcmfmac, Live 0x0000000000000000
+snd_soc_hdmi_codec 20480 1 - Live 0x0000000000000000
+drm_display_helper 16384 1 vc4, Live 0x0000000000000000
+cec 53248 1 vc4, Live 0x0000000000000000
+st7735r 12288 0 - Live 0x0000000000000000
+drm_dma_helper 24576 3 vc4,st7735r, Live 0x0000000000000000
+snd_soc_simple_card 16384 1 - Live 0x0000000000000000
+drm_mipi_dbi 28672 1 st7735r, Live 0x0000000000000000
+snd_soc_simple_card_utils 28672 1 snd_soc_simple_card, Live 0x0000000000000000
+drm_kms_helper 212992 5 vc4,st7735r,drm_dma_helper,drm_mipi_dbi, Live 0x0000000000000000
+hci_uart 49152 0 - Live 0x0000000000000000
+bcm2835_codec 45056 0 - Live 0x0000000000000000 (C)
+bcm2835_v4l2 40960 0 - Live 0x0000000000000000 (C)
+bcm2835_isp 28672 0 - Live 0x0000000000000000 (C)
+btbcm 24576 1 hci_uart, Live 0x0000000000000000
+bcm2835_mmal_vchiq 36864 3 bcm2835_codec,bcm2835_v4l2,bcm2835_isp, Live 0x0000000000000000 (C)
+v4l2_mem2mem 45056 1 bcm2835_codec, Live 0x0000000000000000
+raspberrypi_hwmon 12288 0 - Live 0x0000000000000000
+bluetooth 606208 26 bnep,hci_uart,btbcm, Live 0x0000000000000000
+videobuf2_dma_contig 16384 2 bcm2835_codec,bcm2835_isp, Live 0x0000000000000000
+videobuf2_vmalloc 12288 1 bcm2835_v4l2, Live 0x0000000000000000
+snd_soc_bcm2835_i2s 16384 2 - Live 0x0000000000000000
+snd_soc_max98357a 12288 1 - Live 0x0000000000000000
+videobuf2_memops 12288 2 videobuf2_dma_contig,videobuf2_vmalloc, Live 0x0000000000000000
+videobuf2_v4l2 32768 4 bcm2835_codec,bcm2835_v4l2,bcm2835_isp,v4l2_mem2mem, Live 0x0000000000000000
+snd_soc_core 286720 6 vc4,snd_soc_hdmi_codec,snd_soc_simple_card,snd_soc_simple_card_utils,snd_soc_bcm2835_i2s,snd_soc_max98357a, Live 0x0000000000000000
+ecdh_generic 16384 2 bluetooth, Live 0x0000000000000000
+videodev 303104 5 bcm2835_codec,bcm2835_v4l2,bcm2835_isp,v4l2_mem2mem,videobuf2_v4l2, Live 0x0000000000000000
+ecc 36864 1 ecdh_generic, Live 0x0000000000000000
+rfkill 32768 6 cfg80211,bluetooth, Live 0x0000000000000000
+snd_bcm2835 24576 0 - Live 0x0000000000000000 (C)
+snd_compress 16384 1 snd_soc_core, Live 0x0000000000000000
+videobuf2_common 69632 8 bcm2835_codec,bcm2835_v4l2,bcm2835_isp,v4l2_mem2mem,videobuf2_dma_contig,videobuf2_vmalloc,videobuf2_memops,videobuf2_v4l2, Live 0x0000000000000000
+libaes 12288 3 aes_arm64,aes_generic,bluetooth, Live 0x0000000000000000
+snd_pcm_dmaengine 16384 1 snd_soc_core, Live 0x0000000000000000
+snd_pcm 139264 7 snd_soc_hdmi_codec,snd_soc_simple_card_utils,snd_soc_bcm2835_i2s,snd_soc_core,snd_bcm2835,snd_compress,snd_pcm_dmaengine, Live 0x0000000000000000
+mc 61440 6 bcm2835_codec,bcm2835_isp,v4l2_mem2mem,videobuf2_v4l2,videodev,videobuf2_common, Live 0x0000000000000000
+snd_timer 36864 1 snd_pcm, Live 0x0000000000000000
+snd 110592 8 snd_soc_hdmi_codec,snd_soc_core,snd_bcm2835,snd_compress,snd_pcm,snd_timer, Live 0x0000000000000000
+raspberrypi_gpiomem 12288 0 - Live 0x0000000000000000
+vc_sm_cma 28672 2 bcm2835_isp,bcm2835_mmal_vchiq, Live 0x0000000000000000 (C)
+gpio_backlight 12288 0 - Live 0x0000000000000000
+uio_pdrv_genirq 12288 0 - Live 0x0000000000000000
+uio 20480 1 uio_pdrv_genirq, Live 0x0000000000000000
+i2c_dev 16384 0 - Live 0x0000000000000000
+drm 643072 7 vc4,drm_display_helper,st7735r,drm_dma_helper,drm_mipi_dbi,drm_kms_helper, Live 0x0000000000000000
+fuse 139264 1 - Live 0x0000000000000000
+drm_panel_orientation_quirks 28672 1 drm, Live 0x0000000000000000
+backlight 24576 4 st7735r,drm_kms_helper,gpio_backlight,drm, Live 0x0000000000000000
+dm_mod 147456 0 - Live 0x0000000000000000
+ip_tables 32768 0 - Live 0x0000000000000000
+x_tables 49152 1 ip_tables, Live 0x0000000000000000
+ipv6 565248 36 [permanent], Live 0x0000000000000000
+spidev 16384 0 - Live 0x0000000000000000
+i2c_bcm2835 16384 0 - Live 0x0000000000000000
+spi_bcm2835 20480 0 - Live 0x0000000000000000

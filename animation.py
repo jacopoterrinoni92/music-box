@@ -43,6 +43,7 @@ class Display:
         self.cs = digitalio.DigitalInOut(cs)
         self.dc = digitalio.DigitalInOut(dc)
         self.rst = digitalio.DigitalInOut(rst)
+        self.rst.switch_to_output()
 
         self.mosi = board.MOSI
         self.sck = board.SCK
