@@ -1,8 +1,8 @@
 from rotary import RotaryEncoder
-from animation import Display
+from window import Window
 from mixer import Mixer
 
-from PIL import Image, ImageDraw, ImageFont
+#from PIL import Image, ImageDraw, ImageFont
 
 import subprocess
 import argparse
@@ -13,7 +13,7 @@ import os
 
 WIDTH = 128
 HEIGHT = 160
-
+'''
 def draw_image() -> Image:
     img = Image.new("RGB", (WIDTH, HEIGHT))
 
@@ -53,6 +53,7 @@ def draw_image() -> Image:
 
     #time.sleep(0.1)
     return img
+    '''
 
 if __name__ == "__main__":
 
@@ -72,22 +73,18 @@ if __name__ == "__main__":
 
     song_file = args.file
 
-    disp = Display()
-    disp.turn_on_backlight()
-
     mixer = Mixer()
     #rotary_encoder = RotaryEncoder(mixer=mixer)
     mixer.music_load(song_file)
     mixer.music_play()
+    
+    window = Window()
 
     try:
         while mixer.music_get_busy():
-            image = draw_image()
-            disp.display_image(image)
+            pass
     except KeyboardInterrupt:
         pass
     finally:
+        window.close()
         #rotary_encoder.clean_channels()
-        disp.clean_resources()
-        disp.turn_off_backlight()
-        #disp.reset()
