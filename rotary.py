@@ -1,5 +1,6 @@
 import time
 import RPi.GPIO as GPIO
+#import lgpio as GPIO
 
 from mixer import Mixer
 
@@ -8,7 +9,7 @@ CLK (output A) is the primary output pulse used to determine the amount of rotat
 Each time the knob is turned in either direction by just one detent (click), 
 the ‘CLK’ output goes through one cycle of going HIGH and then LOW.
 """
-CLK_PIN = 17
+CLK_PIN = 16
 
 """
 DT (Output B) is similar to CLK output, 
@@ -29,6 +30,8 @@ DIRECTION_CCW = 1
 class RotaryEncoder:
 
     def __init__(self, mixer):
+        GPIO.cleanup()
+
         self.init_gpio()
 
         self.mixer = mixer
