@@ -1,3 +1,3 @@
 import logging
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(format="%(funcName)s:%(message)s", level=logging.INFO)
