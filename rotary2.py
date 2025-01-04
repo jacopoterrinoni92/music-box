@@ -22,19 +22,52 @@ When the knob is depressed, the voltage goes LOW.
 """
 SW_PIN = 27
 
+class LoadMusicBox:
+
+    def __init__(self):
+        self.init_gpio()
+
+    def init_gpio(self) -> None:
+        self.loaded_time = 0
+        self.pressed = False
+
+        self.rotor = RotaryEncoder(CLK_PIN, DT_PIN)
+        self.button = Button(SW_PIN)
+
+        self.rotor.when_rotated_clockwise = self.load
+        self.button.when_pressed = self.button_pressed
+
+    def load(self, object):
+        self.loaded_time += 5
+
+    def button_pressed(self, object):
+        self.pressed = True
+
+    def get_loaded_time(self):
+        return self.loaded_time
+
+    def get_pressed(self):
+        return self.pressed
+
+    def close(self):
+        self.rotor.close()
+        self.button.close()
 
 class Rotor:
 
-    def __init__(self, mixer):
+    def __init__(self, mixer: Mixer):
         self.init_gpio()
         self.mixer = mixer
 
     def init_gpio(self) -> None:
         self.rotor = RotaryEncoder(CLK_PIN, DT_PIN)
         self.button = Button(SW_PIN)
+
         self.rotor.when_rotated_clockwise = self.increase_volume
         self.rotor.when_rotated_counter_clockwise = self.decrease_volume
         self.button.when_pressed = self.button_pressed
+        
+        self.pause = False
 
     def increase_volume(self, object):
         self.mixer.music_set_volume(value=1)
@@ -43,7 +76,15 @@ class Rotor:
         self.mixer.music_set_volume(value=-1)
 
     def button_pressed(self, object):
-        print("Button pressed")
+        if self.pause:
+            self.mixer.unpause()
+            self.pause = False
+        else:
+            self.mixer.pause()
+            self.pause = True
+            
+    def get_pause(self):
+        return self.pause
 
     def close(self):
         self.rotor.close()

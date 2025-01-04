@@ -1,24 +1,91 @@
-from rotary2 import Rotor
-from moviepy_video import VideoSprite
+from display_sprite import Window, TextSprite, VideoSprite
+from rotary2 import Rotor, LoadMusicBox
 from mixer import Mixer
 
-import subprocess
 import argparse
+import logging
 import pathlib
 import pygame
 import time
 import sys
-import os
 
 WIDTH = 320
 HEIGHT = 240
-DARK_BLUE = (   3,   5,  54)
 
-def load_time():
+logger = logging.getLogger(__name__)
 
+def update_sprite_1(sprite_group: pygame.sprite.Group, window: Window):
+    logger.debug("Updating the group...")
+    sprite_group.update()
+    sprite_group.draw(window.get_window())
+    pygame.display.flip()
+
+def update_sprite_2(clock: pygame.time.Clock, sprite_group: pygame.sprite.Group, window: Window, elapsed: float, fps: float, pause: bool) -> float:
+    logger.debug("Updating the group...")
+    logger.debug(f"\t Elapsed time: {elapsed}")
+    
+    video_sprite.set_elapsed(elapsed)
+    sprite_group.update()
+    sprite_group.draw(window.get_window())
+    pygame.display.flip()
+    
+    if not pause:
+        return clock.tick_busy_loop(fps)
+    
+    logger.debug("Paused...")
+    return 0.0
+
+def music_box_loading(window: Window, load_music_box: LoadMusicBox, sprite_group: pygame.sprite.Group) return -> float:
+    logger.info("Creating text sprite...")
+    text_sprite = TextSprite(text_str='Turn the knob to load...', pos_x=0, pos_y=180, width=320, height=60)
+    
+    logger.info("Creating video sprite...")
+    video_sprite = VideoSprite(width=WIDTH, height=HEIGHT-60)
+    video_sprite.load_clip('/home/pi/8-music-box.gif', (WIDTH, HEIGHT-60))
+    clip = video_sprite.get_clip()
+    
+    logger.info("Adding sprites to the group...")
+    sprite_group.add(text_sprite)
+    sprite_group.add(video_sprite)
+
+    logger.info("Starting the clock...")
+    clock = pygame.time.Clock()
+    elapsed = 0
+
+    while not load_music_box.get_pressed():
+        elapsed += update_sprite_2(clock, sprite_group, elapsed, window.get_window(), clip.fps)
+
+    sprite_group.remove(text_sprite)
+    sprite_group.remove(video_sprite)
+    update_sprite_1(sprite_group, window.get_window())
+    #sprite_group.update()
+    #sprite_group.draw(window.get_window())
+    #pygame.display.flip()
+    
+    text_sprite = TextSprite(text_str=f"Loaded {load_music_box.get_loaded_time()}") 
+    sprite_group.add(text_sprite)
+    
+    update_sprite_1(sprite_group, window.get_window())
+    #sprite_group.update()
+    #sprite_group.draw(window.get_window())
+    #pygame.display.flip()
+
+    logger.info(f"Loaded {load_music_box.get_loaded_time()}s")
+
+    time.sleep(10)
+
+    sprite_group.remove(text_sprite)
+    sprite_group.remove(video_sprite)
+
+    logger.info("Releasing resources...")
+    load_music_box.close()
+    video_sprite.close_clip()
+    
+    return load_music_box.get_loaded_time()
 
 if __name__ == "__main__":
-
+    logger.info("Music-box application started")
+    
     parser = argparse.ArgumentParser(description="Music-box CLI")
 
     parser.add_argument(
@@ -33,28 +100,50 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
+    pygame.init()
+
+    logger.info("Parsing argument...")
     song_file = args.file
+    
+    logger.info("Setting up display...")
+    window = Window()
 
-    window_sprite = VideoSprite(pygame.Rect( 0, 0, 320, 240 ), "/home/pi/video_320.mp4")
-    clock = pygame.time.Clock()
+    logger.info("Setting up rotary encoder...")
+    load_music_box = LoadMusicBox()
+
+    logger.info("Creating sprite group...")
     sprite_group = pygame.sprite.Group()
-    sprite_group.add( window_sprite )
-    window = window_sprite.get_window()
 
+    logger.info("Waiting for input...")
+    loaded_time = music_box_loading(window, load_music_box, sprite_group)
+
+    logger.info("Creating the video sprite...")
+    video_sprite = VideoSprite()
+    video_sprite.load_clip("/home/pi/video_320.mp4")
+    clip = video_sprite.get_clip()
+    
+    logger.debug(f"Duration: {clip.duration}, FPS: {clip.fps}")
+
+    sprite_group.add(video_sprite)
+
+    logger.info("Setting up the mixer...")
     mixer = Mixer()
     rotary_encoder = Rotor(mixer=mixer)
     mixer.music_load(song_file)
     mixer.music_play()
 
+    logger.info("Setting up the clock...")
+    clock = pygame.time.Clock()
+    elapsed = 0
+
+    logger.info("Looping for {loaded_time}s")
     try:
-        while mixer.music_get_busy():
-            sprite_group.update()
-            window.fill( DARK_BLUE )
-            sprite_group.draw( window )
-            pygame.display.flip()
-            clock.tick_busy_loop(30)
-    except KeyboardInterrupt:
+        while (elapsed / 1000) <= loaded_time:
+            elapsed += update_sprite_2(clock, sprite_group, elapsed, window.get_window(), clip.fps, rotary_encoder.get_pause())
+    except:
         pass
     finally:
-        window_sprite.close()
+        logger.info("Releasing resources...")
         rotary_encoder.close()
+        window.close()
+        pygame.quit()
