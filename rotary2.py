@@ -2,6 +2,10 @@ from gpiozero import RotaryEncoder, Button
 
 from mixer import Mixer
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 """
 CLK (output A) is the primary output pulse used to determine the amount of rotation.
 Each time the knob is turned in either direction by just one detent (click),
@@ -66,7 +70,7 @@ class Rotor:
         self.rotor.when_rotated_clockwise = self.increase_volume
         self.rotor.when_rotated_counter_clockwise = self.decrease_volume
         self.button.when_pressed = self.button_pressed
-        
+
         self.pause = False
 
     def increase_volume(self, object):
@@ -77,12 +81,12 @@ class Rotor:
 
     def button_pressed(self, object):
         if self.pause:
-            self.mixer.unpause()
+            self.mixer.music_unpause()
             self.pause = False
         else:
-            self.mixer.pause()
+            self.mixer.music_pause()
             self.pause = True
-            
+
     def get_pause(self):
         return self.pause
 

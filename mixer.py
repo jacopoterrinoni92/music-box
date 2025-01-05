@@ -5,7 +5,7 @@ class Mixer:
     """ This class is used to manage pygame.Mixer"""
 
     def __init__(
-        self, 
+        self,
         frequency: int = 44100,
         size: float = -16,
         channels: int = 2,
