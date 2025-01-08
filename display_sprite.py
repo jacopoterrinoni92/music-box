@@ -38,64 +38,62 @@ class Window:
         return pygame.display.Info()
 
 class BarSprite(pygame.sprite.Sprite):
-    
+
     def __init__(
-            self, 
-            pos_x = 0, 
-            pos_y = 0, 
-            width = WINDOW_WIDTH, 
+            self,
+            pos_x = 0,
+            pos_y = 0,
+            width = WINDOW_WIDTH,
             height = WINDOW_HEIGHT,
             bar_width = 200,
             bar_height = 10,
             bar_color = COLOR_GRAY
         ):
         pygame.sprite.Sprite.__init__(self)
-        
+
         self.width = width
         self.height = height
         self.bar_width = bar_width
         self.bar_height = bar_height
         self.bar_color = bar_color
-        
+
         self.progress = 0
-        
+
         self.rect = pygame.Rect(pos_x, pos_y, width, height)
         self.image = pygame.Surface((self.rect.width, self.rect.height), pygame.HWSURFACE)
         self.image.fill(COLOR_WHITE)
-        
+
         self.bar_surface = pygame.Surface((bar_width, bar_height))
         self.bar_surface.fill(bar_color)
         x = self.width // 2 - (self.bar_width / 2)
         y = self.height // 2 - (self.bar_height / 2)
         self.image.blit(self.bar_surface, (x ,y))
-        
+
         self.bar_progress = pygame.Surface((0, self.bar_height))
         self.bar_progress_rect = self.bar_progress.get_rect()
         self.bar_progress.fill(COLOR_BLACK)
-        
+
     def set_progress(self, new_progress):
         self.progress = new_progress
-        
+
     def update(self):
-        #self.bar_progress = pygame.Surface((self.progress, self.bar_height))
-        #self.bar_progress.fill(COLOR_BLACK)
-        self.bar_progress_rect.width = int(self.progress)
+        increment = self.progress*self.bar_width
         x = self.width // 2 - (self.bar_width / 2)
         y = self.height // 2 - (self.bar_height / 2)
-        self.image.blit(self.bar_progress, (x ,y))
+        pygame.draw.rect(self.image, COLOR_BLACK, pygame.Rect(x, y, increment, self.bar_height))
 
 class TextSprite(pygame.sprite.Sprite):
 
     def __init__(
-            self, 
-            text_str: str, 
-            pos_x = 0, 
-            pos_y = 0, 
-            width = WINDOW_WIDTH, 
-            height = WINDOW_HEIGHT, 
-            font_name = None, 
-            size = 18, 
-            background = COLOR_WHITE, 
+            self,
+            text_str: str,
+            pos_x = 0,
+            pos_y = 0,
+            width = WINDOW_WIDTH,
+            height = WINDOW_HEIGHT,
+            font_name = None,
+            size = 18,
+            background = COLOR_WHITE,
             color = COLOR_BLACK
         ):
         pygame.sprite.Sprite.__init__(self)
@@ -109,7 +107,7 @@ class TextSprite(pygame.sprite.Sprite):
         self.width = width
         self.height = height
         self.color = color
-        
+
         self.size = self.font.size(text_str)
 
     def set_text_str(self, new_text_str: str):
@@ -126,7 +124,7 @@ class TextSprite(pygame.sprite.Sprite):
 
 
 class VideoSprite(pygame.sprite.Sprite):
-    
+
     def __init__(self, pos_x = 0, pos_y = 0, width = WINDOW_WIDTH, height = WINDOW_HEIGHT):
         pygame.sprite.Sprite.__init__(self)
 

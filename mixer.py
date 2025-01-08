@@ -1,4 +1,4 @@
-import pygame
+import pygamex
 import pathlib
 
 class Mixer:
@@ -34,13 +34,13 @@ class Mixer:
     This will uninitialize pygame.mixerpygame module for loading and playing sounds. 
     All playback will stop and any loaded Sound objects may not be compatible with the mixer if it is reinitialized later.
     """
-    def quit(self) -> None:
-        self.mixer.quit()
+    def mixer_quit(self) -> None:
+        pygame.mixer.quit()
 
     """
     This will stop all playback of all active mixer channels.
     """
-    def stop(self) -> None:
+    def mixer_stop(self) -> None:
         self.mixer.stop()
 
     """
@@ -172,3 +172,6 @@ class Mixer:
     """
     def music_get_busy(self) -> bool:
         return pygame.mixer.music.get_busy()
+
+    def mixer_fadeout(self, time:int=100) -> None:
+        pygame.mixer.fadeout(time)
