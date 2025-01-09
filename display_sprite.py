@@ -1,3 +1,5 @@
+from typing import Tuple
+
 import moviepy
 import pygame
 import os
@@ -20,9 +22,10 @@ class Window:
     def __init__(self):
         os.putenv('SDL_FBDEV', '/dev/fb1')
         pygame.display.init()
+        
         self.window = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT), WINDOW_SURFACE)
 
-    def fill(self, obj = COLOR_GRAY):
+    def fill(self, obj:Tuple[int] = COLOR_GRAY):
         self.window.fill(obj)
 
     def close(self):
@@ -41,13 +44,15 @@ class BarSprite(pygame.sprite.Sprite):
 
     def __init__(
             self,
-            pos_x = 0,
-            pos_y = 0,
-            width = WINDOW_WIDTH,
-            height = WINDOW_HEIGHT,
-            bar_width = 200,
-            bar_height = 10,
-            bar_color = COLOR_GRAY
+            pos_x:int = 0,
+            pos_y:int = 0,
+            width:int = WINDOW_WIDTH,
+            height:int = WINDOW_HEIGHT,
+            bar_width:int = 200,
+            bar_height:int = 10,
+            background:Tuple[int] = COLOR_WHITE,
+            bar_color:Tuple[int] = COLOR_GRAY,
+            bar_progress_color:Tuple[int] = COLOR_BLACK
         ):
         pygame.sprite.Sprite.__init__(self)
 
@@ -55,13 +60,13 @@ class BarSprite(pygame.sprite.Sprite):
         self.height = height
         self.bar_width = bar_width
         self.bar_height = bar_height
-        self.bar_color = bar_color
+        self.bar_progress_color = bar_progress_color
 
         self.progress = 0
 
         self.rect = pygame.Rect(pos_x, pos_y, width, height)
         self.image = pygame.Surface((self.rect.width, self.rect.height), pygame.HWSURFACE)
-        self.image.fill(COLOR_WHITE)
+        self.image.fill(background)
 
         self.bar_surface = pygame.Surface((bar_width, bar_height))
         self.bar_surface.fill(bar_color)
@@ -71,70 +76,69 @@ class BarSprite(pygame.sprite.Sprite):
 
         self.bar_progress = pygame.Surface((0, self.bar_height))
         self.bar_progress_rect = self.bar_progress.get_rect()
-        self.bar_progress.fill(COLOR_BLACK)
+        self.bar_progress.fill(bar_progress_color)
 
-    def set_progress(self, new_progress):
-        self.progress = new_progress
+    def set_progress(self, progress):
+        self.progress = progress
 
     def update(self):
         increment = self.progress*self.bar_width
         x = self.width // 2 - (self.bar_width / 2)
         y = self.height // 2 - (self.bar_height / 2)
-        pygame.draw.rect(self.image, COLOR_BLACK, pygame.Rect(x, y, increment, self.bar_height))
+        pygame.draw.rect(self.image, self.bar_progress_color, pygame.Rect(x, y, increment, self.bar_height))
+
 
 class TextSprite(pygame.sprite.Sprite):
 
     def __init__(
             self,
             text_str: str,
-            pos_x = 0,
-            pos_y = 0,
-            width = WINDOW_WIDTH,
-            height = WINDOW_HEIGHT,
-            font_name = None,
-            size = 18,
-            background = COLOR_WHITE,
-            color = COLOR_BLACK
+            pos_x:int = 0,
+            pos_y:int = 0,
+            width:int = WINDOW_WIDTH,
+            height:int = WINDOW_HEIGHT,
+            font_name:str = "arial",
+            size:int = 24,
+            background:Tuple[int] = COLOR_WHITE,
+            text_color:Tuple[int] = COLOR_BLACK
         ):
         pygame.sprite.Sprite.__init__(self)
-
-        self.font = pygame.font.SysFont(font_name, size)
-        self.rect = pygame.Rect(pos_x, pos_y, width, height)
-        self.image = pygame.Surface((self.rect.width, self.rect.height), pygame.HWSURFACE)
-        self.image.fill(background)
 
         self.text_str = text_str
         self.width = width
         self.height = height
-        self.color = color
+        self.text_color = text_color
 
+        self.rect = pygame.Rect(pos_x, pos_y, width, height)
+        self.image = pygame.Surface((self.rect.width, self.rect.height), pygame.HWSURFACE)
+        self.image.fill(background)
+
+        self.font = pygame.font.SysFont(name=font_name, size=size, bold=True)
         self.size = self.font.size(text_str)
 
-    def set_text_str(self, new_text_str: str):
-        self.text_str = new_text_str
+        text_surface = self.font.render(text_str, False, text_color)
+        x = width // 2 - (self.size[0] / 2)
+        y = height // 2 - (self.size[1] / 2)
+        self.image.blit(text_surface, (x,y))
 
     def close():
         pygame.font.quit()
 
     def update(self):
-        text_surface = self.font.render(self.text_str, True, self.color)
-        x = self.width // 2 - (self.size[0] / 2)
-        y = self.height // 2 - (self.size[1] / 2)
-        self.image.blit(text_surface, (x, y))
+        pass
 
 
 class VideoSprite(pygame.sprite.Sprite):
 
-    def __init__(self, pos_x = 0, pos_y = 0, width = WINDOW_WIDTH, height = WINDOW_HEIGHT):
+    def __init__(
+            self, 
+            pos_x:int = 0, 
+            pos_y:int = 0, 
+            width:int = WINDOW_WIDTH, 
+            height:int = WINDOW_HEIGHT
+        ):
         pygame.sprite.Sprite.__init__(self)
-
-        rect = pygame.Rect(pos_x, pos_y, width, height)
-        self.image = pygame.Surface((rect.width, rect.height), pygame.HWSURFACE)
-
-        self.rect = self.image.get_rect()
-        self.rect.x = rect.x
-        self.rect.y = rect.y
-
+        
         self.video = None
         self.video_pause = False
 
@@ -143,8 +147,11 @@ class VideoSprite(pygame.sprite.Sprite):
 
         self.elapsed = 0
 
-    def set_elapsed(self, new_elapsed: float):
-        self.elapsed = new_elapsed
+        self.rect = pygame.Rect(pos_x, pos_y, width, height)
+        self.image = pygame.Surface((self.rect.width, self.rect.height), pygame.HWSURFACE)
+        
+    def set_elapsed(self, elapsed: float):
+        self.elapsed = elapsed
 
     def update(self):
         if not self.video_pause:
@@ -157,7 +164,7 @@ class VideoSprite(pygame.sprite.Sprite):
     def set_video_pause(self, new_video_pause: bool):
         self.video_pause = new_video_pause
 
-    def load_clip(self, filename: str, target_resolution=(WINDOW_WIDTH, WINDOW_HEIGHT)):
+    def load_clip(self, filename: str, target_resolution:Tuple[int]=(WINDOW_WIDTH, WINDOW_HEIGHT)):
         self.video = moviepy.VideoFileClip(filename=filename, audio=False, target_resolution=target_resolution)
         self.duration = self.video.duration
 

@@ -26,70 +26,74 @@ When the knob is depressed, the voltage goes LOW.
 """
 SW_PIN = 27
 
-class LoadMusicBox:
+
+class RotaryLoader:
 
     def __init__(self):
         self.init_gpio()
-
-    def init_gpio(self) -> None:
         self.loaded_time = 0
         self.pressed = False
 
-        self.rotor = RotaryEncoder(CLK_PIN, DT_PIN)
+    def init_gpio(self) -> None:
         self.button = Button(SW_PIN)
+        self.r_loader = RotaryEncoder(CLK_PIN, DT_PIN)
 
-        self.rotor.when_rotated_clockwise = self.load
         self.button.when_pressed = self.button_pressed
+        self.r_loader.when_rotated_clockwise = self.load
 
-    def load(self, object):
+    def load(self, object) -> None:
         self.loaded_time += 5
 
-    def button_pressed(self, object):
+    def button_pressed(self, object) -> None:
         self.pressed = True
 
-    def get_loaded_time(self):
+    def get_loaded_time(self) -> int:
         return self.loaded_time
 
-    def get_pressed(self):
+    def get_pressed(self) -> bool:
         return self.pressed
 
-    def close(self):
+    def reset(self) -> None:
+        self.pressed = False
+        self.loaded_time = 0
+
+    def close(self) -> None:
         self.rotor.close()
         self.button.close()
 
-class Rotor:
+
+class REncoder:
 
     def __init__(self, mixer: Mixer):
         self.init_gpio()
         self.mixer = mixer
-
-    def init_gpio(self) -> None:
-        self.rotor = RotaryEncoder(CLK_PIN, DT_PIN)
-        self.button = Button(SW_PIN)
-
-        self.rotor.when_rotated_clockwise = self.increase_volume
-        self.rotor.when_rotated_counter_clockwise = self.decrease_volume
-        self.button.when_pressed = self.button_pressed
-
         self.pause = False
 
-    def increase_volume(self, object):
+    def init_gpio(self) -> None:
+        self.button = Button(SW_PIN)
+        self.rotary_encoder = RotaryEncoder(CLK_PIN, DT_PIN)
+        
+        self.button.when_pressed = self.button_pressed
+        self.rotary_encoder.when_rotated_clockwise = self.increase_volume
+        self.rotary_encoder.when_rotated_counter_clockwise = self.decrease_volume
+
+    def increase_volume(self, object) -> None:
         self.mixer.music_set_volume(value=1)
 
-    def decrease_volume(self, object):
+    def decrease_volume(self, object) -> None:
         self.mixer.music_set_volume(value=-1)
 
-    def button_pressed(self, object):
-        if self.pause:
-            self.mixer.music_unpause()
+    def button_pressed(self, object) -> None:
+        if self.pause:   
             self.pause = False
+            self.mixer.music_unpause()
         else:
-            self.mixer.music_pause()
             self.pause = True
+            self.mixer.music_pause()
 
-    def get_pause(self):
+    def get_pause(self) -> bool:
         return self.pause
 
-    def close(self):
-        self.rotor.close()
+    def close(self) -> None:
         self.button.close()
+        self.rotary_encoder.close()

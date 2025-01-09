@@ -1,120 +1,99 @@
-import time
-import RPi.GPIO as GPIO
-#import lgpio as GPIO
+from gpiozero import RotaryEncoder, Button
 
 from mixer import Mixer
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 """
-CLK (output A) is the primary output pulse used to determine the amount of rotation. 
-Each time the knob is turned in either direction by just one detent (click), 
+CLK (output A) is the primary output pulse used to determine the amount of rotation.
+Each time the knob is turned in either direction by just one detent (click),
 the ‘CLK’ output goes through one cycle of going HIGH and then LOW.
 """
 CLK_PIN = 16
 
 """
-DT (Output B) is similar to CLK output, 
-but it lags behind CLK by a 90° phase shift. 
+DT (Output B) is similar to CLK output,
+but it lags behind CLK by a 90° phase shift.
 This output is used to determine the direction of rotation.
 """
-DT_PIN = 23
+DT_PIN = 5
 
 """
-SW is the output of the push button switch (active low). 
+SW is the output of the push button switch (active low).
 When the knob is depressed, the voltage goes LOW.
 """
 SW_PIN = 27
 
-DIRECTION_CW = 0
-DIRECTION_CCW = 1
 
-class RotaryEncoder:
+class RotaryLoader:
 
-    def __init__(self, mixer):
-        GPIO.cleanup()
-
+    def __init__(self):
         self.init_gpio()
-
-        self.mixer = mixer
-
-        self.value = 0
-        self.direction = DIRECTION_CW
-
-        self.state = '00'
-
-        self.callback = None
-
-        self.button_pressed = False
-        self.prev_button_state = GPIO.HIGH
+        self.loaded_time = 0
+        self.pressed = False
 
     def init_gpio(self) -> None:
-        GPIO.setmode(GPIO.BCM)
+        self.button = Button(SW_PIN)
+        self.r_loader = RotaryEncoder(CLK_PIN, DT_PIN)
 
-        GPIO.setup(CLK_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-        GPIO.setup(DT_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-        GPIO.setup(SW_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        self.r_loader.when_rotated_clockwise = self.load
+        self.button.when_pressed = self.button_pressed
 
-        GPIO.add_event_detect(CLK_PIN, GPIO.BOTH, callback=self.rotary_callback)  
-        GPIO.add_event_detect(DT_PIN, GPIO.BOTH, callback=self.rotary_callback)
+    def load(self, object) -> None:
+        self.loaded_time += 5
 
-        GPIO.add_event_detect(SW_PIN, GPIO.FALLING, callback=self.button_pressed)
+    def button_pressed(self, object) -> None:
+        self.pressed = True
 
-    def button_pressed(self, channel):
-        if GPIO.input(SW_PIN) == GPIO.LOW:
-            if self.mixer.pause:
-                self.mixer.music_unpause()
-            else:
-                self.mixer.music_pause()
-        time.sleep(0.1)
+    def get_loaded_time(self) -> int:
+        return self.loaded_time
 
-    def rotary_callback(self, channel):
-        current_clk_state = GPIO.input(CLK_PIN)
-        current_dt_state = GPIO.input(DT_PIN)
-        newState = "{}{}".format(current_clk_state, current_dt_state)
+    def get_pressed(self) -> bool:
+        return self.pressed
 
-        if self.state == "00": # Resting position
-            if newState == "01": # Turned right 1
-                self.direction = DIRECTION_CW
-            elif newState == "10": # Turned left 1
-                self.direction = DIRECTION_CCW
-        elif self.state == "01": # R1 or L3 position
-            if newState == "11": # Turned right 1
-                self.direction = DIRECTION_CW
-            elif newState == "00": # Turned left 1
-                if self.direction == DIRECTION_CCW:
-                    self.value = self.value - 1
-                    self.mixer.music_set_volume(value=-5)
-                    if self.callback is not None:
-                        self.callback(self.value, self.direction)
-        elif self.state == "10": # R3 or L1
-            if newState == "11": # Turned left 1
-                self.direction = DIRECTION_CCW
-            elif newState == "00": # Turned right 1
-                if self.direction == DIRECTION_CW:
-                    self.value = self.value + 1
-                    self.mixer.music_set_volume(value=5)
-                    if self.callback is not None:
-                        self.callback(self.value, self.direction)
-        else: # self.state == "11"
-            if newState == "01": # Turned left 1
-                self.direction = DIRECTION_CCW
-            elif newState == "10": # Turned right 1
-                self.direction = DIRECTION_CW
-            elif newState == "00": # Skipped an intermediate 01 or 10 state, but if we know direction then a turn is complete
-                if self.direction == DIRECTION_CCW:
-                    self.value = self.value - 1
-                    self.mixer.music_set_volume(value=-5)
-                    if self.callback is not None:
-                        self.callback(self.value, self.direction)
-                elif self.direction == DIRECTION_CW:
-                    self.value = self.value + 1
-                    self.mixer.music_set_volume(value=5)
-                    if self.callback is not None:
-                        self.callback(self.value, self.direction)
+    def reset(self) -> None:
+        self.pressed = False
+        self.loaded_time = 0
+
+    def close(self) -> None:
+        self.r_loader.close()
+        self.button.close()
+
+
+class REncoder:
+
+    def __init__(self, mixer: Mixer):
+        self.init_gpio()
+        self.mixer = mixer
+        self.pause = False
+
+    def init_gpio(self) -> None:
+        self.button = Button(SW_PIN)
+        self.rotary_encoder = RotaryEncoder(CLK_PIN, DT_PIN)
         
-        self.state = newState
+        self.button.when_pressed = self.button_pressed
+        self.rotary_encoder.when_rotated_clockwise = self.increase_volume
+        self.rotary_encoder.when_rotated_counter_clockwise = self.decrease_volume
 
-    def clean_channels(self):
-        GPIO.cleanup()
+    def increase_volume(self, object) -> None:
+        self.mixer.music_set_volume(value=1)
 
-    def get_value(self):
-        return self.value
+    def decrease_volume(self, object) -> None:
+        self.mixer.music_set_volume(value=-1)
+
+    def button_pressed(self, object) -> None:
+        if self.pause:   
+            self.pause = False
+            self.mixer.music_unpause()
+        else:
+            self.pause = True
+            self.mixer.music_pause()
+
+    def get_pause(self) -> bool:
+        return self.pause
+
+    def close(self) -> None:
+        self.button.close()
+        self.rotary_encoder.close()
