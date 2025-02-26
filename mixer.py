@@ -12,7 +12,7 @@ class Mixer:
         buffer: int = 512,
         devicename: str = None,
         allowedchanges=pygame.AUDIO_ALLOW_FREQUENCY_CHANGE | pygame.AUDIO_ALLOW_CHANNELS_CHANGE,
-        volume: int = 1
+        volume: int = 0.5
     ):
 
         self.frequency = frequency
@@ -29,6 +29,14 @@ class Mixer:
         self.volume = volume
 
         self.pause = False
+    
+    """
+    This will uninitialize pygame.mixer pygame module for loading and playing sounds. 
+    All playback will stop and any loaded Sound objects may not be compatible with the mixer 
+    if it is reinitialized later.
+    """
+    def mixer_quit(self) -> None:
+        pygame.mixer.quit()
 
     """
     This returns the status of the player

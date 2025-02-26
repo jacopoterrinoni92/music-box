@@ -1,5 +1,5 @@
-from display_sprite import Window, TextSprite, VideoSprite, BarSprite
-from rotary import REncoder, RotaryLoader
+from display_sprite import Window, TextSprite, VideoSprite, BarSprite, FadeOutSprite
+from rotary import REncoder, RotaryLoader, FEncoder
 from mixer import Mixer
 
 import argparse
@@ -8,10 +8,11 @@ import pathlib
 import pygame
 import time
 import sys
+import os
 
 GIF_FILE = "/home/pi/8-music-box.gif"
-VIDEO_FILE = "/home/pi/video_320.mp4"
-MUSIC_FILE = ""
+VIDEO_FILE = "/home/pi/in_your_dreams.avi"
+MUSIC_FILE = "/home/pi/music/in_your_dreams.mp3"
 
 WIDTH = 320
 HEIGHT = 240
@@ -21,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 def update_sprite_1(window: Window, sprite_group: pygame.sprite.Group) -> None:
     logger.debug("Updating the group...")
-    
+
     sprite_group.update()
     sprite_group.draw(window.get_window())
     pygame.display.flip()
@@ -33,25 +34,27 @@ def update_sprite_2(window: Window, clock: pygame.time.Clock, sprite_group: pyga
     sprite_group.draw(window.get_window())
     pygame.display.flip()
 
-    return clock.tick_busy_loop(fps) if not pause else 0.0
+    return clock.tick_busy_loop(fps) #if not pause else 0.0
 
 def music_box_loader(window: Window, sprite_group: pygame.sprite.Group, duration:int) -> float:
     logger.info("Setting up rotary encoder...")
     rotary_loader = RotaryLoader()
-    
+
     logger.info("Creating text sprite...")
-    text_sprite = TextSprite(text_str='Gira in senso orario per caricare', pos_y=180, width=320, height=30)
+    text_sprite_1 = TextSprite(text_str='Gira in senso orario per caricare', pos_y=150, width=320, height=30, size=16)
+    text_sprite_2 = TextSprite(text_str='Premi per riprodurre', pos_y=180, width=320, height=30, size=16)
 
     logger.info("Creating bar sprite...")
     bar_sprite = BarSprite(pos_y=210, width=WIDTH, height=30)
 
     logger.info("Creating video sprite...")
-    video_sprite = VideoSprite(width=WIDTH, height=HEIGHT-60)
-    video_sprite.load_clip(filename='/home/pi/8-music-box.gif', target_resolution=(WIDTH, HEIGHT-60))
+    video_sprite = VideoSprite(width=WIDTH, height=HEIGHT-90)
+    video_sprite.load_clip(filename='/home/pi/8-music-box.gif', target_resolution=(WIDTH, HEIGHT-90))
     clip = video_sprite.get_clip()
 
     logger.info("Adding sprites to the group...")
-    sprite_group.add(text_sprite)
+    sprite_group.add(text_sprite_1)
+    sprite_group.add(text_sprite_2)
     sprite_group.add(bar_sprite)
     sprite_group.add(video_sprite)
 
@@ -71,7 +74,8 @@ def music_box_loader(window: Window, sprite_group: pygame.sprite.Group, duration
 
     logger.info("Loading complete...")
 
-    sprite_group.remove(text_sprite)
+    sprite_group.remove(text_sprite_1)
+    sprite_group.remove(text_sprite_2)
     sprite_group.remove(video_sprite)
     sprite_group.remove(bar_sprite)
 
@@ -85,7 +89,7 @@ def music_box_loader(window: Window, sprite_group: pygame.sprite.Group, duration
     logger.info(f"Loaded {loaded}s")
 
     logger.info("Setting up resources...")
-    text_sprite = TextSprite(text_str="Caricamento...", width=WIDTH, height=HEIGHT-100)
+    text_sprite = TextSprite(text_str="Caricamento...", width=WIDTH, height=HEIGHT-100, size=18)
     bar_sprite = BarSprite(pos_y=140, width=WIDTH, height=HEIGHT-140)
 
     sprite_group.add(text_sprite)
@@ -110,15 +114,19 @@ def music_box_loader(window: Window, sprite_group: pygame.sprite.Group, duration
 
     return loaded
 
-def start_music_box(window: Window, sprite_group: pygame.sprite.Group):
+def start_music_box(window: Window, sprite_group: pygame.sprite.Group, completed: bool):
     logger.info("Creating the video sprite...")
     video_sprite = VideoSprite()
-    video_sprite.load_clip("/home/pi/video_320.mp4")
+    video_sprite.load_clip(VIDEO_FILE)
     clip = video_sprite.get_clip()
+
+    #logger.info("Creating the fade out sprite...")
+    #fade_out = FadeOutSprite(window=window.get_window())
 
     logger.debug(f"Duration: {clip.duration}, FPS: {clip.fps}")
 
     sprite_group.add(video_sprite)
+    #sprite_group.add(fade_out)
 
     logger.info("Setting up the mixer...")
     mixer = Mixer()
@@ -130,20 +138,18 @@ def start_music_box(window: Window, sprite_group: pygame.sprite.Group):
     clock = pygame.time.Clock()
     elapsed = 0
 
-    logger.info(f"Looping for {loaded_time}s")
+    #logger.info(f"Looping for {loaded_time}s")
 
     try:
-        while (elapsed / 1000) <= loaded_time:
-            less_than_10 = loaded_time - (elapsed / 1000)
-
-            if less_than_10 <= 10:
-                mixer.music_set_volume(-less_than_10)
-                
+        while (elapsed / 1000) <= clip.duration:
+            logger.debug(f"Elapsed: {elapsed}")
             video_sprite.set_elapsed(elapsed=elapsed)
             elapsed += update_sprite_2(clock=clock, sprite_group=sprite_group, window=window, fps=clip.fps, pause=rotary_encoder.get_pause())
     except Exception as e:
         logger.error(f"Caught error {e}")
-    
+
+    completed = True
+
     logger.info("Releasing resources...")
     mixer.mixer_quit()
     rotary_encoder.close()
@@ -153,25 +159,11 @@ def start_music_box(window: Window, sprite_group: pygame.sprite.Group):
 
 if __name__ == "__main__":
     logger.info("Music-box application started")
-    
-    parser = argparse.ArgumentParser(description="Music-box CLI")
-
-    parser.add_argument(
-        "file",
-        type=pathlib.Path,
-        help=("Path of the song to play")
-    )
-
-    if len(sys.argv) == 1:
-        parser.print_help()
-        sys.exit()
-
-    args = parser.parse_args()
 
     pygame.init()
 
     logger.info("Parsing argument...")
-    song_file = args.file
+    song_file = pathlib.Path(MUSIC_FILE)
 
     logger.info("Setting up display...")
     window = Window()
@@ -179,15 +171,32 @@ if __name__ == "__main__":
     logger.info("Creating sprite group...")
     sprite_group = pygame.sprite.Group()
 
+    completed = False
+
     try:
         while True:
-            logger.info("Starting the loader...")
-            loaded_time = music_box_loader(window=window, sprite_group=sprite_group, duration=2.30*60)
-
-            logger.info("Start music box...")
-            start_music_box(window=window, sprite_group=sprite_group)
+            #logger.info("Starting the loader...")
+            #loaded_time = music_box_loader(window=window, sprite_group=sprite_group, duration=2.30*60)
+            logger.info("Start the music box...")
+            start_music_box(window=window, sprite_group=sprite_group, completed=completed)
+            
+            logger.info("Creating the text sprite...")
+            text_sprite_1 = TextSprite(text_str='Premi per spegnere', size=16)
+            sprite_group.add(text_sprite_1)
+            
+            encoder = FEncoder()
+            encoder.wait_press()
+            
+            if encoder.get_shutdown():
+                logger.info("Shutting down...")
+                os.system("shutdown -s")
+            else:
+                sprite_group.remove(text_sprite_1)
+                encoder.close()
+            
     except Exception as e:
         logger.error(f"Caught error {e}")
     finally:
         window.close()
+        encoder.close()
         pygame.quit()

@@ -22,7 +22,7 @@ class Window:
     def __init__(self):
         os.putenv('SDL_FBDEV', '/dev/fb1')
         pygame.display.init()
-        
+
         self.window = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT), WINDOW_SURFACE)
 
     def fill(self, obj:Tuple[int] = COLOR_GRAY):
@@ -88,6 +88,32 @@ class BarSprite(pygame.sprite.Sprite):
         pygame.draw.rect(self.image, self.bar_progress_color, pygame.Rect(x, y, increment, self.bar_height))
 
 
+class FadeOutSprite(pygame.sprite.Sprite):
+
+    def __init__(self, window, pos_x:int = 0, pos_y:int = 0, width:int = 0, height:int = WINDOW_HEIGHT, background:Tuple[int] = COLOR_BLACK):
+        pygame.sprite.Sprite.__init__(self)
+
+        self.window = window
+        self.width = width
+        self.height = height
+        self.background = background
+
+        self.progress = 0
+
+        self.fade_out_surface = pygame.Surface((self.width, self.height))
+        self.fade_out_surface_rect = self.fade_out_surface.get_rect()
+        self.fade_out_surface.fill(self.background)
+
+    def set_progress(self, progress):
+        self.progress = progress
+
+    def update(self):
+        increment = self.progress*WINDOW_WIDTH
+        x = WINDOW_WIDTH // 2 - (WINDOW_WIDTH / 2)
+        y = WINDOW_HEIGHT // 2 - (WINDOW_HEIGHT / 2)
+        pygame.draw.rect(self.window, self.fade_out_surface, pygame.Rect(x, y, increment, self.height))
+
+
 class TextSprite(pygame.sprite.Sprite):
 
     def __init__(
@@ -99,8 +125,8 @@ class TextSprite(pygame.sprite.Sprite):
             height:int = WINDOW_HEIGHT,
             font_name:str = "arial",
             size:int = 24,
-            background:Tuple[int] = COLOR_WHITE,
-            text_color:Tuple[int] = COLOR_BLACK
+            background:Tuple[int] = COLOR_BLACK,
+            text_color:Tuple[int] = COLOR_WHITE
         ):
         pygame.sprite.Sprite.__init__(self)
 

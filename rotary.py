@@ -84,12 +84,15 @@ class REncoder:
         self.mixer.music_set_volume(value=-1)
 
     def button_pressed(self, object) -> None:
+        pass
+        '''
         if self.pause:   
             self.pause = False
             self.mixer.music_unpause()
         else:
             self.pause = True
             self.mixer.music_pause()
+        '''
 
     def get_pause(self) -> bool:
         return self.pause
@@ -97,3 +100,26 @@ class REncoder:
     def close(self) -> None:
         self.button.close()
         self.rotary_encoder.close()
+        
+        
+class FEncoder:
+
+    def __init__(self, mixer: Mixer):
+        self.init_gpio()
+        self.shutdown = False
+
+    def init_gpio(self) -> None:
+        self.button = Button(SW_PIN)
+        self.button.when_pressed = self.button_pressed
+
+    def button_pressed(self, object) -> None:
+        self.shutdown = True
+        
+    def wait_press(self, timeout) -> None:
+        self.button.wait_for_press(timeout=timeout)
+
+    def get_shutdown(self) -> bool:
+        return self.shutdown
+
+    def close(self) -> None:
+        self.button.close()
