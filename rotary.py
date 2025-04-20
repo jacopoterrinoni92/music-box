@@ -72,7 +72,7 @@ class REncoder:
     def init_gpio(self) -> None:
         self.button = Button(SW_PIN)
         self.rotary_encoder = RotaryEncoder(CLK_PIN, DT_PIN)
-        
+
         self.button.when_pressed = self.button_pressed
         self.rotary_encoder.when_rotated_clockwise = self.increase_volume
         self.rotary_encoder.when_rotated_counter_clockwise = self.decrease_volume
@@ -100,13 +100,14 @@ class REncoder:
     def close(self) -> None:
         self.button.close()
         self.rotary_encoder.close()
-        
-        
+
+
 class FEncoder:
 
-    def __init__(self, mixer: Mixer):
+    def __init__(self):
         self.init_gpio()
         self.shutdown = False
+        self.pressed = False
 
     def init_gpio(self) -> None:
         self.button = Button(SW_PIN)
@@ -114,8 +115,12 @@ class FEncoder:
 
     def button_pressed(self, object) -> None:
         self.shutdown = True
-        
-    def wait_press(self, timeout) -> None:
+        self.pressed = True
+
+    def get_pressed(self) -> bool:
+        return self.pressed
+
+    def wait_press(self, timeout=10) -> None:
         self.button.wait_for_press(timeout=timeout)
 
     def get_shutdown(self) -> bool:

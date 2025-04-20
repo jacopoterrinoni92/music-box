@@ -36,83 +36,39 @@ def update_sprite_2(window: Window, clock: pygame.time.Clock, sprite_group: pyga
 
     return clock.tick_busy_loop(fps) #if not pause else 0.0
 
-def music_box_loader(window: Window, sprite_group: pygame.sprite.Group, duration:int) -> float:
+def music_box_loader(window: Window, sprite_group: pygame.sprite.Group):
     logger.info("Setting up rotary encoder...")
-    rotary_loader = RotaryLoader()
+    encoder = FEncoder()
 
     logger.info("Creating text sprite...")
-    text_sprite_1 = TextSprite(text_str='Gira in senso orario per caricare', pos_y=150, width=320, height=30, size=16)
-    text_sprite_2 = TextSprite(text_str='Premi per riprodurre', pos_y=180, width=320, height=30, size=16)
-
-    logger.info("Creating bar sprite...")
-    bar_sprite = BarSprite(pos_y=210, width=WIDTH, height=30)
-
-    logger.info("Creating video sprite...")
-    video_sprite = VideoSprite(width=WIDTH, height=HEIGHT-90)
-    video_sprite.load_clip(filename='/home/pi/8-music-box.gif', target_resolution=(WIDTH, HEIGHT-90))
-    clip = video_sprite.get_clip()
+    text_sprite_1 = TextSprite(text_str='Premi per spegnere', pos_y=150, width=320, height=30, size=16)
+    text_sprite_2 = TextSprite(text_str='10', pos_y=180, width=320, height=30, size=16)
 
     logger.info("Adding sprites to the group...")
     sprite_group.add(text_sprite_1)
     sprite_group.add(text_sprite_2)
-    sprite_group.add(bar_sprite)
-    sprite_group.add(video_sprite)
 
     logger.info("Starting the clock...")
     clock = pygame.time.Clock()
     elapsed = 0
 
+    time = 10
+
     try:
-        while not rotary_loader.get_pressed() and rotary_loader.get_loaded_time() <= duration:
-            progress = rotary_loader.get_loaded_time() / duration
-            logger.debug(f"Progress: {progress}, Duration: {duration}")
-            bar_sprite.set_progress(progress=progress)
-            video_sprite.set_elapsed(elapsed=elapsed)
-            elapsed += update_sprite_2(window=window, clock=clock, sprite_group=sprite_group, fps=clip.fps)
+        while not encoder.get_pressed() and time >= 1:
+            update_sprite_1(window=window, sprite_group=sprite_group)
+            text_sprite_2.update_text(time)
+            time -= 1
+            elapsed += clock.tick_busy_loop(1)
     except Exception as e:
         logger.error(f"Caught error {e.__class__}, {e}")
 
-    logger.info("Loading complete...")
-
+    logger.info("Releasing resources...")
     sprite_group.remove(text_sprite_1)
     sprite_group.remove(text_sprite_2)
-    sprite_group.remove(video_sprite)
-    sprite_group.remove(bar_sprite)
+    encoder.close()
 
-    logger.info("Sprite group updated...")
-
-    loaded = rotary_loader.get_loaded_time()
-    rotary_loader.reset()
-
-    update_sprite_1(window=window, sprite_group=sprite_group)
-
-    logger.info(f"Loaded {loaded}s")
-
-    logger.info("Setting up resources...")
-    text_sprite = TextSprite(text_str="Caricamento...", width=WIDTH, height=HEIGHT-100, size=18)
-    bar_sprite = BarSprite(pos_y=140, width=WIDTH, height=HEIGHT-140)
-
-    sprite_group.add(text_sprite)
-    sprite_group.add(bar_sprite)
-
-    clock = pygame.time.Clock()
-    elapsed = 0
-
-    while (elapsed / 1000) <= 10:
-        bar_sprite.set_progress((elapsed/1000)/10)
-        sprite_group.update()
-        sprite_group.draw(window.get_window())
-        pygame.display.flip()
-        elapsed += clock.tick_busy_loop(1)
-
-    sprite_group.remove(text_sprite)
-    sprite_group.remove(bar_sprite)
-
-    logger.info("Releasing resources...")
-    rotary_loader.close()
-    video_sprite.close_clip()
-
-    return loaded
+    return encoder.get_shutdown()
 
 def start_music_box(window: Window, sprite_group: pygame.sprite.Group, completed: bool):
     logger.info("Creating the video sprite...")
@@ -148,13 +104,32 @@ def start_music_box(window: Window, sprite_group: pygame.sprite.Group, completed
     except Exception as e:
         logger.error(f"Caught error {e}")
 
-    completed = True
-
     logger.info("Releasing resources...")
     mixer.mixer_quit()
     rotary_encoder.close()
     video_sprite.close_clip()
     sprite_group.remove(video_sprite)
+
+    shutdown = music_box_loader(window=window, sprite_group=sprite_group)
+
+    '''
+    logger.info("Creating the text sprite...")
+
+    text_sprite_1 = TextSprite(text_str='...', size=16)
+    sprite_group.add(text_sprite_1)
+
+    update_sprite_1(window=window, sprite_group=sprite_group)
+
+    encoder = FEncoder()
+    encoder.wait_press()
+    '''
+
+    if shutdown:
+        logger.info("Shutting down...")
+        return True
+        #os.system("sudo shutdown now")
+    else:
+        return False
 
 
 if __name__ == "__main__":
@@ -178,25 +153,14 @@ if __name__ == "__main__":
             #logger.info("Starting the loader...")
             #loaded_time = music_box_loader(window=window, sprite_group=sprite_group, duration=2.30*60)
             logger.info("Start the music box...")
-            start_music_box(window=window, sprite_group=sprite_group, completed=completed)
-            
-            logger.info("Creating the text sprite...")
-            text_sprite_1 = TextSprite(text_str='Premi per spegnere', size=16)
-            sprite_group.add(text_sprite_1)
-            
-            encoder = FEncoder()
-            encoder.wait_press()
-            
-            if encoder.get_shutdown():
-                logger.info("Shutting down...")
-                os.system("shutdown -s")
-            else:
-                sprite_group.remove(text_sprite_1)
-                encoder.close()
-            
+            if start_music_box(window=window, sprite_group=sprite_group, completed=completed):
+                break
+
     except Exception as e:
         logger.error(f"Caught error {e}")
     finally:
         window.close()
-        encoder.close()
         pygame.quit()
+        
+        logger.info("Shutting down...")
+        os.system("sudo shutdown now")

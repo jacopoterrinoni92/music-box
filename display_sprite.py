@@ -147,6 +147,12 @@ class TextSprite(pygame.sprite.Sprite):
         y = height // 2 - (self.size[1] / 2)
         self.image.blit(text_surface, (x,y))
 
+    def update_text(self, text_str):
+        text_surface = self.font.render(text_str, False, self.text_color)
+        x = self.width // 2 - (self.size[0] / 2)
+        y = self.height // 2 - (self.size[1] / 2)
+        self.image.blit(text_surface, (x,y))
+
     def close():
         pygame.font.quit()
 
